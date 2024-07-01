@@ -1,0 +1,78 @@
+﻿@page
+@model SchedulerCrudRazor.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+@using Syncfusion.EJ2
+
+@Html.AntiForgeryToken()
+
+<ejs-schedule id="schedule" width="100%" height="550px" selectedDate="new DateTime(2024,6,1)" currentView="Month" actionComplete="onActionComplete">
+    <e-schedule-eventsettings dataSource="Model.DataSource"></e-schedule-eventsettings>
+</ejs-schedule>
+
+<script type="text/javascript">
+
+    function onActionComplete(args) {
+        debugger;
+        var scheduleObj = document.querySelector('.e-schedule').ej2_instances[0];
+        var data;
+        var token = $("input:hidden[name='__RequestVerificationToken']").val();
+        var headers = {};
+        headers["XSRF-TOKEN"] = token;
+        console.log(args);
+        if (args.addedRecords && args.addedRecords.length > 0) {
+            $.ajax({
+                type: "POST",
+                url: "/Index?handler=Save",
+                contentType: 'application/json; charset=utf-8',
+                headers: headers,
+                data: JSON.stringify({ eventToAdd: args.addedRecords }),
+                success: function (response) {
+                    updateSchedule(response);
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+            args.cancel = true;
+        }
+        if (args.changedRecords && args.changedRecords.length > 0) {
+            
+            $.ajax({
+                type: "POST",
+                url: "/Index?handler=Update",
+                contentType: 'application/json; charset=utf-8',
+                headers: headers,
+                data: JSON.stringify({ eventToAdd: args.changedRecords }),
+                success: function (response) {
+                    updateSchedule(response);
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+            args.cancel = true;
+        }
+        if (args.deletedRecords && args.deletedRecords.length > 0) {
+            $.ajax({
+                type: "POST",
+                url: "/Index?handler=Delete",
+                contentType: 'application/json; charset=utf-8',
+                headers: headers,
+                data: JSON.stringify({ eventToAdd: args.deletedRecords }),
+                success: function (response) {
+                    updateSchedule(response);
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+            args.cancel = true;
+        }
+    }
+    function updateSchedule(response) {
+        var scheduleObj = document.querySelector('.e-schedule').ej2_instances[0];
+        scheduleObj.eventSettings.dataSource = response;
+    }
+</script>
